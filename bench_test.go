@@ -23,7 +23,7 @@ func BenchmarkQueuePatterns(b *testing.B) {
 	items := generateProduceItems(1_000)
 	mask := len(items) - 1
 
-	b.Run("noQueue", func(b *testing.B) {
+	b.Run("none", func(b *testing.B) {
 		start := clock.Now()
 		b.ResetTimer()
 
@@ -43,7 +43,7 @@ func BenchmarkQueuePatterns(b *testing.B) {
 		b.ReportMetric(opsPerSec, "ops/s")
 	})
 
-	b.Run("mutexQueue", func(b *testing.B) {
+	b.Run("mutex", func(b *testing.B) {
 		m := queue.NewMutex(1_000, c)
 
 		start := clock.Now()
@@ -62,6 +62,29 @@ func BenchmarkQueuePatterns(b *testing.B) {
 			}
 		})
 		require.NoError(b, m.Close(context.Background()))
+		opsPerSec := float64(b.N) / clock.Since(start).Seconds()
+		b.ReportMetric(opsPerSec, "ops/s")
+	})
+
+	b.Run("channel", func(b *testing.B) {
+		ch := queue.NewChannel(1_000, c)
+
+		start := clock.Now()
+		b.ResetTimer()
+
+		b.RunParallel(func(p *testing.PB) {
+			index := int(rand.Uint32() & uint32(mask))
+			for p.Next() {
+				ctx, cancel := context.WithTimeout(context.Background(), time.Second*10)
+				if err := ch.ProduceItems(ctx, &pb.ProduceRequest{
+					Items: items[index&mask : index+1&mask],
+				}); err != nil {
+					b.Error(err)
+				}
+				cancel()
+			}
+		})
+		require.NoError(b, ch.Close(context.Background()))
 		opsPerSec := float64(b.N) / clock.Since(start).Seconds()
 		b.ReportMetric(opsPerSec, "ops/s")
 	})

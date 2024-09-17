@@ -19,8 +19,8 @@ type Mutex struct {
 
 func NewMutex(limit int, c *Client) *Mutex {
 	m := &Mutex{
-		done:       make(chan struct{}),
 		queue:      make([]*Request, 0, limit),
+		done:       make(chan struct{}),
 		batchLimit: limit,
 		client:     c,
 	}
