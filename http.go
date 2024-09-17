@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"github.com/duh-rpc/duh-go"
 	v1 "github.com/duh-rpc/duh-go/proto/v1"
+	"github.com/kapetan-io/tackle/set"
 	"github.com/prometheus/client_golang/prometheus"
 	"github.com/thrawn01/queue-patterns.go/proto"
 	"net/http"
@@ -12,11 +13,13 @@ import (
 
 type HTTPHandler struct {
 	duration *prometheus.SummaryVec
-	log      duh.StandardLogger
 	metrics  http.Handler
+	conf     Config
 }
 
-func NewHTTPHandler(metrics http.Handler, log duh.StandardLogger) *HTTPHandler {
+func NewHTTPHandler(metrics http.Handler, conf Config) *HTTPHandler {
+	set.Default(&conf.RequestSleep, time.Millisecond*10)
+
 	return &HTTPHandler{
 		duration: prometheus.NewSummaryVec(prometheus.SummaryOpts{
 			Name: "http_handler_duration",
@@ -27,7 +30,7 @@ func NewHTTPHandler(metrics http.Handler, log duh.StandardLogger) *HTTPHandler {
 			},
 		}, []string{"path"}),
 		metrics: metrics,
-		log:     log,
+		conf:    conf,
 	}
 }
 
@@ -51,8 +54,8 @@ func (h *HTTPHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// Pretend to do some work that takes 10 Milliseconds
-	time.Sleep(10 * time.Millisecond)
+	// Pretend to do some work
+	time.Sleep(h.conf.RequestSleep)
 
 	duh.Reply(w, r, duh.CodeOK, &v1.Reply{Code: duh.CodeOK})
 }

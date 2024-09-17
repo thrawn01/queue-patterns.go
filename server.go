@@ -14,6 +14,7 @@ import (
 	"net"
 	"net/http"
 	"sync"
+	"time"
 )
 
 type Config struct {
@@ -23,6 +24,8 @@ type Config struct {
 	ListenAddress string
 	// Logger is the logging implementation
 	Logger duh.StandardLogger
+	// Request Sleep Time
+	RequestSleep time.Duration
 }
 
 func (c *Config) ClientTLS() *tls.Config {
@@ -63,7 +66,7 @@ func (s *Server) Start(ctx context.Context) error {
 
 	handler := NewHTTPHandler(promhttp.InstrumentMetricHandler(
 		registry, promhttp.HandlerFor(registry, promhttp.HandlerOpts{}),
-	), s.conf.Logger)
+	), s.conf)
 	registry.MustRegister(handler)
 
 	if s.conf.ServerTLS() != nil {

@@ -12,15 +12,18 @@ can evaluate each for performance and simplicity.
 
 
 ```
-goos: darwin
-goarch: arm64
-pkg: github.com/thrawn01/queue-patterns.go
-BenchmarkQueuePatterns
-2024/09/17 15:51:50 INFO HTTP Listening ... address=127.0.0.1:2319
-BenchmarkQueuePatterns/warmup
-BenchmarkQueuePatterns/warmup-10                1023       1220565 ns/op           819.3 ops/s
+Current Operating System has '10' CPUs
+2024/09/17 17:42:09 INFO HTTP Listening ... address=127.0.0.1:2319
+BenchmarkQueuePatterns/none
+BenchmarkQueuePatterns/none-10         	      97	  11327316 ns/op	        88.28 ops/s
 BenchmarkQueuePatterns/mutex
-BenchmarkQueuePatterns/mutex-10                  432       2933297 ns/op           340.9 ops/s
+BenchmarkQueuePatterns/mutex-10        	     434	   2824829 ns/op	       354.0 ops/s
+BenchmarkQueuePatterns/channel
+BenchmarkQueuePatterns/channel-10      	     388	   2782659 ns/op	       359.4 ops/s
+BenchmarkQueuePatterns/querator
+BenchmarkQueuePatterns/querator-10     	     523	   2315109 ns/op	       431.9 ops/s
+BenchmarkQueuePatterns/querator-noalloc
+BenchmarkQueuePatterns/querator-noalloc-10         	     519	   2350627 ns/op	       425.4 ops/s
 PASS
 ```
 

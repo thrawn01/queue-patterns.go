@@ -9,13 +9,16 @@ import (
 	"github.com/thrawn01/queue-patterns.go"
 	pb "github.com/thrawn01/queue-patterns.go/proto"
 	"math/rand"
+	"runtime"
 	"testing"
 	"time"
 )
 
 func BenchmarkQueuePatterns(b *testing.B) {
+	fmt.Printf("Current Operating System has '%d' CPUs\n", runtime.NumCPU())
 	s, err := queue.NewServer(context.Background(), queue.Config{
 		ListenAddress: "localhost:2319",
+		RequestSleep:  10 * time.Millisecond,
 	})
 	require.NoError(b, err)
 	c := s.MustClient()
@@ -30,7 +33,7 @@ func BenchmarkQueuePatterns(b *testing.B) {
 		b.RunParallel(func(p *testing.PB) {
 			index := int(rand.Uint32() & uint32(mask))
 			for p.Next() {
-				ctx, cancel := context.WithTimeout(context.Background(), time.Second)
+				ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 				if err := c.ProduceItems(ctx, &pb.ProduceRequest{
 					Items: items[index&mask : index+1&mask],
 				}); err != nil {
@@ -85,6 +88,52 @@ func BenchmarkQueuePatterns(b *testing.B) {
 			}
 		})
 		require.NoError(b, ch.Close(context.Background()))
+		opsPerSec := float64(b.N) / clock.Since(start).Seconds()
+		b.ReportMetric(opsPerSec, "ops/s")
+	})
+
+	b.Run("querator", func(b *testing.B) {
+		q := queue.NewQuerator(1_000, c)
+
+		start := clock.Now()
+		b.ResetTimer()
+
+		b.RunParallel(func(p *testing.PB) {
+			index := int(rand.Uint32() & uint32(mask))
+			for p.Next() {
+				ctx, cancel := context.WithTimeout(context.Background(), time.Second*10)
+				if err := q.ProduceItems(ctx, &pb.ProduceRequest{
+					Items: items[index&mask : index+1&mask],
+				}); err != nil {
+					b.Error(err)
+				}
+				cancel()
+			}
+		})
+		require.NoError(b, q.Close(context.Background()))
+		opsPerSec := float64(b.N) / clock.Since(start).Seconds()
+		b.ReportMetric(opsPerSec, "ops/s")
+	})
+
+	b.Run("querator-noalloc", func(b *testing.B) {
+		q := queue.NewQueratorNoAlloc(1_000, c)
+
+		start := clock.Now()
+		b.ResetTimer()
+
+		b.RunParallel(func(p *testing.PB) {
+			index := int(rand.Uint32() & uint32(mask))
+			for p.Next() {
+				ctx, cancel := context.WithTimeout(context.Background(), time.Second*10)
+				if err := q.ProduceItems(ctx, &pb.ProduceRequest{
+					Items: items[index&mask : index+1&mask],
+				}); err != nil {
+					b.Error(err)
+				}
+				cancel()
+			}
+		})
+		require.NoError(b, q.Close(context.Background()))
 		opsPerSec := float64(b.N) / clock.Since(start).Seconds()
 		b.ReportMetric(opsPerSec, "ops/s")
 	})
