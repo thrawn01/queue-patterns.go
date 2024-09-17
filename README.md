@@ -23,7 +23,7 @@ BenchmarkQueuePatterns/channel-10      	     388	   2782659 ns/op	       359.4 o
 BenchmarkQueuePatterns/querator
 BenchmarkQueuePatterns/querator-10     	     523	   2315109 ns/op	       431.9 ops/s
 BenchmarkQueuePatterns/querator-noalloc
-BenchmarkQueuePatterns/querator-noalloc-10         	     519	   2350627 ns/op	       425.4 ops/s
+BenchmarkQueuePatterns/querator-noalloc-10   519	   2350627 ns/op	       425.4 ops/s
 PASS
 ```
 
