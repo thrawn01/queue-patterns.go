@@ -1,0 +1,13 @@
+syntax = "proto3";
+
+option go_package = "github.com/thrawn01/queue-patterns.go/proto";
+
+package querator;
+
+message ProduceRequest {
+  repeated ProduceItem items = 3;
+}
+
+message ProduceItem {
+  bytes bytes = 1;
+}
