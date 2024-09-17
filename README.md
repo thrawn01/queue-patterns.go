@@ -28,6 +28,4 @@ PASS
 ```
 
 ### TODO
-- [ ] Channel (typical go style)
-- [ ] Queue style Channels
 - [ ] Ring Buffer
