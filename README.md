@@ -1,10 +1,10 @@
 This repo is intended to benchmark different queue patterns in golang.
 
 ### The Queue Pattern
-Client needs to send lots of data to a Service. The naive design would be to
-send each request as the need arises in an N+1 pattern. The more efficient
+A single writer needs to write lots of data. The naive design would be to
+write each request as the need arises in an N+1 pattern. The more efficient
 pattern would be to queue all the requests for some short period of time then
-send all the items in a batch.
+write all the items in a batch.
 
 There are several different ways to implement a queue such that items are sent in a
 batch. This repo is intended to benchmark those different approaches, so we
